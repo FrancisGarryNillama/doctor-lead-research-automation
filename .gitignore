@@ -1,0 +1,14 @@
+.env
+.venv/
+cache/
+scratch/
+__pycache__/
+*.pyc
+output/*.db
+# kept out of the public repo: real doctors' contact data, videos, private submission notes
+output/
+outbox/
+videos/
+ASSESSMENT_BRIEF.txt
+SUBMISSION.md
+DEMO_VIDEO_SCRIPT.md

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Event log{% endblock %}
+{% block body %}
+<div class="card" style="padding:0;overflow:auto">
+<table>
+<tr><th>Time (UTC)</th><th>Level</th><th>Event</th><th>Lead</th><th>Message</th></tr>
+{% for e in rows %}
+<tr><td class="muted" style="white-space:nowrap">{{ e['at'] }}</td>
+<td><span class="pill {{ {'info':'drafted','warn':'flagged','error':'failed'}[e['level']] }}">{{ e['level'] }}</span></td>
+<td><span class="code">{{ e['code'] }}</span></td><td>{{ e['lead_id'] or '' }}</td><td>{{ e['message'] }}</td></tr>
+{% endfor %}
+</table></div>
+{% endblock %}

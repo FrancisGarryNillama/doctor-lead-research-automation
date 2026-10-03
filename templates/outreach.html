@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Outreach approval{% endblock %}
+{% block body %}
+<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+  <div class="flow"><span>Qualified</span>→<span>Email available?</span>→<span>Verified?</span>→<span>Previously contacted?</span>→
+    <span>AI draft + fact check</span>→<span><b>Human approval</b></span>→<span>Send ({{ send_mode }})</span>→<span>Log</span></div>
+  <form method="post" action="{{ url_for('outreach_prepare', run=rid) }}" style="margin-left:auto"><button>Prepare drafts</button></form>
+</div>
+{% for o in rows %}
+{% set ch = o['check_results']|jl %}
+<div class="card" id="o{{ o['id'] }}">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <b>#{{ o['id'] }} {{ o['name'] }}</b> <span class="muted">&lt;{{ o['email'] or 'no email' }}&gt;</span>
+    <span class="pill {{ o['status'] }}">{{ o['status'] }}</span>
+    {% if o['reviewer'] %}<span class="muted">by {{ o['reviewer'] }} {{ o['decided_at'] }}</span>{% endif %}
+    {% if o['sent_at'] %}<span class="muted">sent {{ o['sent_at'] }}</span>{% endif %}
+  </div>
+  <div class="muted" style="margin:6px 0">
+    Checks: email available <b>{{ 'yes' if ch.get('email_available') else 'no' }}</b> ·
+    verified <b>{{ 'yes' if ch.get('email_verified') else 'no' }}</b> ·
+    previously contacted <b>{{ ch.get('previously_contacted') or 'no' }}</b>
+    {% if ch.get('skip_reason') %} · <b>skipped: {{ ch['skip_reason'] }}</b>{% endif %}
+    {% if ch.get('drafted_by') %} · drafted by <span class="code">{{ ch['drafted_by'] }}</span>{% endif %}
+  </div>
+  {% if ch.get('fact_check') and ch['fact_check'] != 'passed' %}
+    <div class="flash" style="background:var(--warnbg);color:var(--warn)">Fact check failed: {{ ch['fact_check']|join('; ') }}</div>
+  {% elif ch.get('fact_check') %}<div class="muted">Fact check: passed</div>{% endif %}
+  {% if ch.get('fact_check_after_edit') %}<div class="muted">Fact check after edit: {{ ch['fact_check_after_edit'] if ch['fact_check_after_edit'] is string else ch['fact_check_after_edit']|join('; ') }}</div>{% endif %}
+
+  {% if o['status'] in ['drafted','flagged'] %}
+  <form method="post" action="{{ url_for('outreach_decide', oid=o['id'], run=rid) }}">
+    <p><input type="text" name="subject" value="{{ o['subject'] }}"></p>
+    <p><textarea name="body">{{ o['body'] }}</textarea></p>
+    <p style="display:flex;gap:8px;align-items:center">
+      <input type="text" name="reviewer" placeholder="Your name" style="max-width:200px" required>
+      <button name="decision" value="approve">Approve</button>
+      <button name="decision" value="reject" class="danger">Reject</button>
+    </p>
+  </form>
+  {% elif o['subject'] %}
+  <details {{ 'open' if o['status']=='approved' }}><summary>{{ o['subject'] }}</summary><pre style="white-space:pre-wrap;font:inherit">{{ o['body'] }}</pre></details>
+  {% endif %}
+  {% if o['status'] == 'approved' %}
+  <form method="post" action="{{ url_for('outreach_send', oid=o['id'], run=rid) }}"><button>Send ({{ send_mode }})</button></form>
+  {% endif %}
+</div>
+{% else %}
+<div class="card muted">No outreach yet. Click “Prepare drafts”.</div>
+{% endfor %}
+{% endblock %}

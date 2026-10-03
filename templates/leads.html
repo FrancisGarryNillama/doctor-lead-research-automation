@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Leads{% endblock %}
+{% block body %}
+<div class="card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+  <b>Filter:</b>
+  <a href="{{ url_for('leads', run=rid) }}">all</a>
+  {% for s in ['QUALIFIED','NEEDS_REVIEW','PENDING_ENRICHMENT','EXISTING_IN_CRM','REJECTED','PENDING'] %}
+   · <a href="{{ url_for('leads', run=rid, status=s) }}">{{ s.lower() }}</a>{% endfor %}
+  <span class="muted" style="margin-left:auto">{{ rows|length }} doctors · exports in <span class="code">output/run{{ rid }}_*.csv / .xlsx</span></span>
+</div>
+<div class="card" style="padding:0;overflow:auto">
+<table>
+<tr><th>Doctor</th><th>Status</th><th>Hospital(s)</th><th>Email</th><th>Register</th><th>Verification notes</th></tr>
+{% for r in rows %}
+<tr>
+  <td><b>{{ r['name'] }}</b><div class="muted">{{ r['specialty'] }} · {{ r['location'] }}</div>
+    {% for u in r['profile_urls']|jl %}<div><a href="{{ u }}" target="_blank">profile</a></div>{% endfor %}</td>
+  <td><span class="pill {{ r['lead_status'] }}">{{ r['lead_status'] }}</span>
+    <div>{% for c in r['reason_codes']|jl %}<div class="code" style="margin-top:3px">{{ c }}</div>{% endfor %}</div></td>
+  <td>{% for h in r['hospitals']|jl %}<div>{{ h }}</div>{% endfor %}</td>
+  <td>{% if r['email'] %}{{ r['email'] }}{% else %}<span class="muted">—</span>{% endif %}
+    {% if r['email_status'] %}<div><span class="pill {{ r['email_status'] }}">{{ r['email_status'] }}</span> <span class="muted">{{ r['email_type'] or '' }}</span></div>{% endif %}
+    {% if r['email_source_url'] %}<div><a href="{{ r['email_source_url'] }}" target="_blank">email source</a></div>{% endif %}</td>
+  <td>{% if r['mchk_reg_no'] %}<span class="code">{{ r['mchk_reg_no'] }}</span><div class="muted">{{ r['mchk_name'] }}</div>{% else %}<span class="muted">not identified</span>{% endif %}</td>
+  <td><ul class="notes">{% for n in r['notes']|jl %}<li>{{ n }}</li>{% endfor %}</ul>
+    {% if r['raw']|length > 1 %}<details><summary>{{ r['raw']|length }} source records merged</summary>
+      <ul class="notes">{% for x in r['raw'] %}<li>{{ x['source'] }}: "{{ x['name_raw'] }}" — {{ x['specialty_raw'] }}</li>{% endfor %}</ul></details>{% endif %}</td>
+</tr>
+{% endfor %}
+</table></div>
+{% endblock %}

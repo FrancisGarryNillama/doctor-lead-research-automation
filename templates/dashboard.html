@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block body %}
+<div class="card">
+  <div class="flow">
+    <span>Request</span>→<span>Search hospital directories</span>→<span>Find orthopaedic doctors</span>→
+    <span>Identify in MCHK register</span>→<span>Deduplicate</span>→<span>Check CRM</span>→
+    <span>Claude web research (email)</span>→<span>Verify email</span>→<span>Apply rules</span>→<span>Quality check</span>→<span>Store &amp; export</span>
+  </div>
+  <p class="muted" style="margin:10px 0 0">Mode: {% if offline %}<b>OFFLINE</b> (no API key: no email research, template emails){% else %}Claude <span class="code">{{ model }}</span>{% endif %}
+   · Sending: <span class="code">{{ send_mode }}</span></p>
+</div>
+
+{% if rid %}
+<div class="grid" style="margin-bottom:16px">
+  <div class="stat"><div class="n">{{ raw }}</div><div class="l">Raw records found</div></div>
+  <div class="stat"><div class="n">{{ counts.values()|sum }}</div><div class="l">Unique doctors</div></div>
+  {% for s in ['QUALIFIED','NEEDS_REVIEW','PENDING_ENRICHMENT','EXISTING_IN_CRM','REJECTED'] %}
+  <div class="stat"><div class="n">{{ counts.get(s, 0) }}</div><div class="l"><a href="{{ url_for('leads', run=rid, status=s) }}">{{ s.replace('_',' ').lower() }}</a></div></div>
+  {% endfor %}
+</div>
+<div class="grid">
+  <div class="card"><b>Sources</b>
+    <ul>{% for s in by_source %}<li>{{ s['source'] }}: {{ s['n'] }} records</li>{% endfor %}</ul></div>
+  <div class="card"><b>Email status</b>
+    <ul>{% for k, v in email_counts.items() %}<li><span class="pill {{ k }}">{{ k }}</span> {{ v }}</li>{% endfor %}</ul></div>
+  <div class="card"><b>Outreach</b>
+    <ul>{% for k, v in out_counts.items() %}<li><span class="pill {{ k }}">{{ k }}</span> {{ v }}</li>{% else %}<li class="muted">Not prepared yet</li>{% endfor %}</ul>
+    <form method="post" action="{{ url_for('outreach_prepare', run=rid) }}"><button>Prepare outreach drafts</button></form></div>
+</div>
+{% endif %}
+
+<div class="card"><b>Runs</b>
+<table><tr><th>Run</th><th>Request</th><th>Status</th><th>Started (UTC)</th><th>Web searches</th></tr>
+{% for r in runs %}<tr><td><a href="{{ url_for('dashboard', run=r['id']) }}">{{ r['id'] }}</a></td><td>{{ r['request'] }}</td>
+<td><span class="pill {{ 'QUALIFIED' if r['status']=='completed' else 'NEEDS_REVIEW' }}">{{ r['status'] }}</span></td><td>{{ r['started_at'] }}</td><td>{{ r['web_searches_used'] }}</td></tr>
+{% else %}<tr><td colspan="5" class="muted">No runs yet. Run <span class="code">python -m leadgen.pipeline</span></td></tr>{% endfor %}
+</table></div>
+{% endblock %}

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Doctor Leads{% endblock %} · Medic Paths prototype</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2433; --muted:#667085; --line:#e4e7ec; --brand:#1f4fd1;
+          --ok:#127a3a; --okbg:#dcf5e5; --warn:#8a5a00; --warnbg:#fff1cc; --bad:#a3141d; --badbg:#fde2e3; --info:#1f4fd1; --infobg:#e3ebff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:#111a2e; color:#fff; padding:12px 24px; display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+  header b { font-size:15px; }
+  header a { color:#c9d4f5; text-decoration:none; }
+  header a.on { color:#fff; font-weight:600; }
+  main { padding:20px 24px; max-width:1400px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .stat .n { font-size:26px; font-weight:700; }
+  .stat .l { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  table { width:100%; border-collapse:collapse; background:var(--card); }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; background:#fafbfc; position:sticky; top:0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
+  .QUALIFIED,.verified,.sent,.approved,.drafted { background:var(--okbg); color:var(--ok); }
+  .NEEDS_REVIEW,.risky,.unverified,.flagged,.PENDING_ENRICHMENT { background:var(--warnbg); color:var(--warn); }
+  .REJECTED,.invalid,.excluded_domain,.rejected,.failed { background:var(--badbg); color:var(--bad); }
+  .EXISTING_IN_CRM,.skipped,.not_found,.PENDING { background:#eceef2; color:#475467; }
+  .muted { color:var(--muted); }
+  .notes { margin:4px 0 0; padding-left:16px; color:#344054; font-size:12.5px; }
+  .code { font-family:ui-monospace, Consolas, monospace; font-size:12px; background:#f1f3f6; padding:1px 5px; border-radius:4px; }
+  button, .btn { background:var(--brand); color:#fff; border:0; border-radius:7px; padding:7px 12px; font-weight:600; cursor:pointer; font-size:13px; }
+  button.secondary { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  button.danger { background:var(--bad); }
+  textarea, input[type=text] { width:100%; font:inherit; padding:8px; border:1px solid var(--line); border-radius:7px; }
+  textarea { min-height:220px; }
+  .flash { background:var(--infobg); color:var(--info); padding:10px 14px; border-radius:8px; margin-bottom:12px; }
+  .flow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:12.5px; }
+  .flow span { background:#eef2ff; border:1px solid #d6dffd; padding:4px 8px; border-radius:6px; }
+  a { color:var(--brand); }
+  details summary { cursor:pointer; color:var(--brand); }
+</style>
+</head>
+<body>
+<header>
+  <b>Doctor Lead Research &amp; Outreach</b>
+  <a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint=='dashboard' }}">Dashboard</a>
+  <a href="{{ url_for('leads') }}" class="{{ 'on' if request.endpoint=='leads' }}">Leads</a>
+  <a href="{{ url_for('outreach_queue') }}" class="{{ 'on' if request.endpoint=='outreach_queue' }}">Outreach approval</a>
+  <a href="{{ url_for('log') }}" class="{{ 'on' if request.endpoint=='log' }}">Event log</a>
+  <span class="muted" style="margin-left:auto;color:#9aa6c4">run {{ rid or '-' }}</span>
+</header>
+<main>
+  {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
+  {% block body %}{% endblock %}
+</main>
+</body>
+</html>
